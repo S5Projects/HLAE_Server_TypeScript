@@ -3,11 +3,11 @@ import mirvpgl from './mirvpgl';
 var pgl = new mirvpgl(31337,"/winter");
 
 pgl.emitter.on('cmd',(cmd) => {
-    console.log(cmd)
+    console.log(`CMD : ${cmd}`)
 })
 
 pgl.emitter.on('version',(v) => {
-    console.log(v)
+    console.log(`VERSION : ${v}`)
 })
 
 pgl.emitter.on('cam',(data) => {
