@@ -360,7 +360,7 @@ export default class mirvpgl {
 								case 'hello':
 									{
 										var version = bufferReader.readUInt32LE();
-										self.wsConsole.print('version = ' + version);
+										//self.wsConsole.print('version = ' + version);
 										self.emitter.emit("version",version);
 										if (2 != version) throw "Error: version mismatch";
 		
@@ -400,7 +400,7 @@ export default class mirvpgl {
 								case 'levelInit':
 									{
 										var map = bufferReader.readCString();
-										self.wsConsole.print('map = ' + map);
+										//self.wsConsole.print('map = ' + map);
 										self.emitter.emit("map",map)
 									}
 									break;

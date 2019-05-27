@@ -10,6 +10,10 @@ pgl.emitter.on('version',(v) => {
     console.log(`VERSION : ${v}`)
 })
 
+pgl.emitter.on('map',(map) => {
+    console.log(`map : ${map}`)
+})
+
 pgl.emitter.on('cam',(data) => {
     console.log(data)
 })
