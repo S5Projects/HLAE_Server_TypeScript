@@ -34,14 +34,6 @@ const readline = require('readline'),
 
 ////////////////////////////////////////////////////////////////////////////////
 
-/*
-export class mirvpgl {
-	constructor(port) {
-		new wsc(port);;
-	}
-}
-*/
-
 class BufferReader {
 	buffer: any;
 	index: number;
@@ -326,7 +318,7 @@ export default class mirvpgl {
 		this.emitter = new EventEmitter();
 		this.ws = null;
 		this.wsConsole = new Console();
-		this.wsConsole.print(`Listening on port 31337, path ${path} ...`);
+		this.wsConsole.print(`Listening on port ${port}, path ${path} ...`);
 		this.server = http.createServer();
 		this.server.listen(port);
 		this.wss = new WebSocketServer({ server: this.server, path: path });
