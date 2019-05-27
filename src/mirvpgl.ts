@@ -305,6 +305,16 @@ export default class mirvpgl {
 	private wsConsole:any;
 	private server:any;
 	private wss:any;
+
+	public sendcommand(cmd:string){
+		if (this.ws) {
+			this.ws.send(new Uint8Array(Buffer.from('exec\0' + cmd.trim() + '\0', 'utf8')), { binary: true });
+		}
+		else{
+			this.wsConsole.print("ws is not active");
+		}
+	}
+
 	constructor(port:number,path_in:string){
 		var path:string;
 		if(!(path_in.indexOf('\/') == 0)){
@@ -328,10 +338,8 @@ export default class mirvpgl {
 			process.exit(0);
 		});
 		
-		this.wsConsole.on('line',(data:any)=> {
-			if (this.ws) {
-				this.ws.send(new Uint8Array(Buffer.from('exec\0' + data.trim() + '\0', 'utf8')), { binary: true });
-			}
+		this.wsConsole.on('line',(data:string)=> {
+			this.sendcommand(data);
 		});
 
 		this.wss.on('connection', function (newWs:any) {

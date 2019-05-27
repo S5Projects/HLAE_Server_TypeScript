@@ -1,6 +1,6 @@
 import mirvpgl from './mirvpgl';
 
-var pgl = new mirvpgl(31337,"/winter");
+var pgl = new mirvpgl(31337,"/mirv");
 
 pgl.emitter.on('cmd',(cmd) => {
     console.log(`CMD : ${cmd}`)
@@ -8,6 +8,7 @@ pgl.emitter.on('cmd',(cmd) => {
 
 pgl.emitter.on('version',(v) => {
     console.log(`VERSION : ${v}`)
+    pgl.sendcommand(`echo RECEIVED VERSION! version : ${v}`)
 })
 
 pgl.emitter.on('map',(map) => {
