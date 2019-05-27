@@ -5,12 +5,10 @@ var pgl = new mirvpgl(31337,"/mirv");
 // for Example...
 // mirv_pgl url "ws://127.0.0.1:31337/mirv"
 
-
 // fires when you type commands in console directly...?
 pgl.emitter.on('cmd',(cmd) => {
     console.log(`CMD : ${cmd}`)
 })
-
 
 // fires when CS:GO client connects mirv_pgl server
 pgl.emitter.on('version',(v) => {
