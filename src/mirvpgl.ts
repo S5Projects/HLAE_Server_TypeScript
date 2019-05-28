@@ -1,12 +1,18 @@
 import { EventEmitter } from "events";
 
+import * as readline from 'readline';
+import * as events from 'events';
+import * as util from 'util';
+import * as WebSocket from 'ws';
+const WebSocketServer = WebSocket.Server;
+import * as http from 'http';
+const bigInt = require("big-integer");
 // MIRV PROCESS
-const readline = require('readline'),
-	events = require('events'),
-	util = require('util'),
-	WebSocketServer = require('ws').Server,
-	http = require('http'),
-	bigInt = require("big-integer");
+//const readline = require('readline'),
+//const events = require('events'),
+//const util = require('util'),
+//const WebSocketServer = require('ws').Server,
+// const http = require('http'),
 
 
 /*
@@ -35,9 +41,9 @@ const readline = require('readline'),
 ////////////////////////////////////////////////////////////////////////////////
 
 class BufferReader {
-	buffer: any;
+	buffer: Buffer;
 	index: number;
-	constructor(buffer:any) {
+	constructor(buffer:Buffer) {
 		this.buffer = buffer
 		this.index = 0;
 	}
@@ -110,7 +116,7 @@ class BufferReader {
 		return this.index >= this.buffer.length;
 	}
 
-	private findDelim(buffer:any, idx:any): number {
+	private findDelim(buffer:Buffer, idx:number): number {
 		var delim = -1;
 		for (var i = idx; i < buffer.length; ++i) {
 			if (0 == buffer[i]) {
@@ -126,11 +132,11 @@ class BufferReader {
 
 class GameEventDescription {
 	eventId: number;
-	eventName: string;
+	eventName: string | undefined;
 	keys: any[]
 	enrichments: any;
 
-	constructor(bufferReader:any) {
+	constructor(bufferReader:BufferReader) {
 		this.eventId = bufferReader.readInt32LE();
 		this.eventName = bufferReader.readCString();
 		this.keys = [];
@@ -146,7 +152,7 @@ class GameEventDescription {
 		}
 	}
 
-	unserialize(bufferReader:any) {
+	unserialize(bufferReader:BufferReader) {
 		var clientTime = bufferReader.readFloatLE();
 
 		var result:any = {
@@ -160,7 +166,7 @@ class GameEventDescription {
 
 			var keyName = key.name;
 
-			var keyValue;
+			var keyValue:any;
 
 			switch (key.type) {
 				case 1:
@@ -208,7 +214,7 @@ class UseridEnrichment{
 			, 'useridWithEyeAngles'
 		];
 	}
-	unserialize(bufferReader:any, keyValue:any) {
+	unserialize(bufferReader:BufferReader, keyValue:any) {
 		var xuid = bufferReader.readBigUInt64LE().toString();
 		var eyeOrigin = [bufferReader.readFloatLE(), bufferReader.readFloatLE(), bufferReader.readFloatLE()];
 		var eyeAngles = [bufferReader.readFloatLE(), bufferReader.readFloatLE(), bufferReader.readFloatLE()];
@@ -231,8 +237,8 @@ class EntitynumEnrichment{
 		];
 	}
 	unserialize(bufferReader:any, keyValue:any) {
-		var origin = [bufferReader.readFloatLE(), bufferReader.readFloatLE(), bufferReader.readFloatLE()];
-		var angles = [bufferReader.readFloatLE(), bufferReader.readFloatLE(), bufferReader.readFloatLE()];
+		var origin:number[] = [bufferReader.readFloatLE(), bufferReader.readFloatLE(), bufferReader.readFloatLE()];
+		var angles:number[] = [bufferReader.readFloatLE(), bufferReader.readFloatLE(), bufferReader.readFloatLE()];
 	
 		return {
 			value: keyValue,
@@ -278,7 +284,6 @@ class Console extends EventEmitter {
 	stdin = process.stdin;
 	stdout = process.stdout;
 	readlineInterface: any;
-	
 
 	constructor() {
 		super();
@@ -303,7 +308,7 @@ export default class mirvpgl {
 	emitter: EventEmitter;
 	private ws:any = null;
 	private wsConsole:any;
-	private server:any;
+	private server:http.Server;
 	private wss:any;
 
 	public sendcommand(cmd:string){
@@ -323,7 +328,7 @@ export default class mirvpgl {
 		else {
 			path = path_in;
 		}
-		console.log(path);
+		//console.log(path);
 		var self:any = this;
 		this.emitter = new EventEmitter();
 		this.ws = null;
@@ -376,7 +381,7 @@ export default class mirvpgl {
 											'transBegin\0'
 											, 'utf8')), { binary: true });
 		
-											self.ws.send(new Uint8Array(Buffer.from(
+										self.ws.send(new Uint8Array(Buffer.from(
 											'exec\0mirv_pgl events enrich clientTime 1\0', 'utf8'
 										)), { binary: true });
 		
@@ -386,14 +391,14 @@ export default class mirvpgl {
 		
 												for (var i = 0; i < arrEnrich.length; ++i) {
 													self.ws.send(new Uint8Array(Buffer.from(
-														'exec\0mirv_pgl events enrich eventProperty "' + arrEnrich[i] + '" "' + eventName + '" "' + keyName + '"\0'
+														`exec\0mirv_pgl events enrich eventProperty "${arrEnrich[i]}" "${eventName}" "${keyName}"\0`
 														, 'utf8')), { binary: true });
 												}
 											}
 										}
 		
 										self.ws.send(new Uint8Array(Buffer.from(
-											'exec\0mirv_pgl events enabled 1\0'
+											'exec\0mirv_pgl events enabled 1\0' // enable event
 											, 'utf8')), { binary: true });
 		
 										self.ws.send(new Uint8Array(Buffer.from(
@@ -426,28 +431,7 @@ export default class mirvpgl {
 										camdata.zRotation = bufferReader.readFloatLE();
 										camdata.fov = bufferReader.readFloatLE();
 
-										/*
-										self.wsConsole.print('time = ' + camdata.time);
-										self.wsConsole.print('xPosition = ' + camdata.xPosition);
-										self.wsConsole.print('yPosition = ' + camdata.yPosition);
-										self.wsConsole.print('zPosition = ' + camdata.zPosition);
-										self.wsConsole.print('xRotation = ' + camdata.xRotation);
-										self.wsConsole.print('yRotation = ' + camdata.yRotation);
-										self.wsConsole.print('zRotation = ' + camdata.zRotation);
-										self.wsConsole.print('fov = ' + camdata.fov);
-										*/
-
-										var emitdata = {
-											time 		: camdata.time,
-											xPosition 	: camdata.xPosition,
-											yPosition 	: camdata.yPosition,
-											zPosition 	: camdata.zPosition,
-											xRotation 	: camdata.xRotation,
-											yRotation	: camdata.yRotation,
-											zRotation 	: camdata.zRotation,
-											fov 		: camdata.fov
-										};
-										self.emitter.emit("cam",emitdata);
+										self.emitter.emit("cam",camdata);
 									}
 									break;
 								case 'gameEvent':
@@ -484,7 +468,15 @@ var useridEnrichment = new UseridEnrichment();
 var entitynumEnrichment = new EntitynumEnrichment();
 
 // ( see https://wiki.alliedmods.net/Counter-Strike:_Global_Offensive_Events )
-var enrichments:any = {
+
+interface Ievents{
+	[userid:string]:UseridEnrichment | EntitynumEnrichment,
+}
+interface Ienrichments{
+	[key:string]:Ievents;
+}
+
+var enrichments:Ienrichments = {
 	'player_death': {
 		'userid': useridEnrichment,
 		'attacker': useridEnrichment,
