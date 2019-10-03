@@ -7,7 +7,7 @@ var pgl = new mirvpgl(31337,"/mirv");
 // mirv_pgl url "ws://127.0.0.1:31337/mirv"
 
 // this tells you what you received, e.g. "dataStop","CAM" etc.
-pgl.emitter.on('cmd',(cmd) => {
+pgl.emitter.on('cmd',(cmd:string) => {
     console.log(`CMD : ${cmd}`)
 })
 
@@ -25,13 +25,13 @@ pgl.emitter.on('map',(map:string) => {
 // fires each camera pos change
 // To receive cam info, Enter below
 // mirv_pgl datastart;
-pgl.emitter.on('cam',(data) => {
+pgl.emitter.on('cam',(data:any) => {
     console.log(data)
 })
 
 // fires if you chose version3 mirv_pgl
 // mirv_pgl start 3
-pgl.emitter.on('gameEvent',(data) => {
+pgl.emitter.on('gameEvent',(data:any) => {
     console.log(JSON.parse(data))
 })
 
@@ -41,7 +41,7 @@ pgl.emitter.on('close',() => {
 })
 
 // error handling
-pgl.emitter.on('error',(e) => {
+pgl.emitter.on('error',(e:any) => {
     console.log("CONNECTION ERROR!")
     console.error(e)
 })
